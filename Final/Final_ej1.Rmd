@@ -1,0 +1,109 @@
+---
+title: "Final_ej1"
+author: "Equipo"
+date: "4/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(1111)
+```
+
+```{r}
+rm(list = ls())
+library (vcd)
+library (nortest)
+dataset = read.csv("Weather.csv")
+summary(dataset)
+
+```
+```{r}
+library(dplyr)
+
+
+dataset = filter (dataset, PRCP != c(""))
+
+
+dataset$PRCP <- as.numeric(as.character(dataset$PRCP))
+
+```
+
+```{r}
+
+summary(dataset)
+
+```
+
+
+```{r}
+
+
+filtered_data = filter (dataset, PRCP != c( "NA"))
+
+```
+
+```{r}
+summary(filtered_data)
+
+```
+#After filtering we proceed with ANCOVA because we count with countinuous variables and categorical variables
+
+```{r}
+
+
+test=lm(PRCP~MaxTemp+MinTemp+MO, filtered_data)
+
+summary.lm(test)
+
+
+```
+
+```{r}
+filtered_data_mar = dplyr::filter(filtered_data, MO == 3)
+filtered_data_oct = dplyr::filter(filtered_data, MO == 10)
+
+```
+```{r}
+plot(density(filtered_data_mar$PRCP), col = "blue")
+lines (density(filtered_data_oct$PRCP), col = "red")
+boxplot(filtered_data_mar$PRCP, filtered_data_oct$PRCP)
+
+```
+
+
+
+```{r}
+
+ad.test(filtered_data_mar$PRCP)
+ad.test(filtered_data_oct$PRCP)
+ks.test(filtered_data_mar$PRCP,filtered_data_oct$PRCP)
+
+
+```
+#According to the graphics and the results of the normality test the data does not behave normally because of this The test to be performed will be Mann-Whitney also known as two-sample Wilcoxon
+
+```{r}
+pval=numeric(100)
+var<-1:100
+
+test<-0
+for (i in var) {
+  bs1<-sample(filtered_data_oct$PRCP,25,replace = TRUE,prob = NULL)
+  bs2<-sample(filtered_data_mar$PRCP,20,replace = TRUE,prob = NULL)
+  pval[i]=wilcox.test(bs1,bs2, paired = F, alternative = "two.sided",conf.int = 0.95)$p.value
+  
+  
+  if(pval>=0.05){
+    test=test+1}
+}
+  hist(pval)
+  mean(pval)
+  plot(density(pval))
+
+```
+
+# Conclusion
+
+According to the data there is not enough evidence to reject the null hypothesis, which means that with a 95 % of confidence that there is no significant difference between drugs use disorders as cause of dead from 2003 and 2014. 
+

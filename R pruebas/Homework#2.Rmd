@@ -1,0 +1,125 @@
+---
+title: 'Homework #2'
+author: "Alejandro Saldaña y Benjamín Moreno"
+date: "28/2/2020"
+output: pdf_document
+---
+```{r}
+rm(list = ls())
+library(vcd)
+dataset = read.csv("Dataset.csv")
+summary(dataset)
+
+```
+
+```{r}
+library(dplyr)
+Druguse2003 = filter(dataset, Variable == "Drug use disorders" & Measure =="Deaths per 100 000 population (standardised rates)" & Year == 2003)
+summary(Druguse2003)
+
+```
+
+```{r}
+Druguse2014 = filter(dataset, Variable =="Drug use disorders" & Measure =="Deaths per 100 000 population (standardised rates)" & Year == 2014)
+summary(Druguse2014)
+```
+
+```{r}
+hist(Druguse2003$Value)
+hist(Druguse2014$Value)
+plot(density(Druguse2003$Value))
+plot(density(Druguse2014$Value))
+```
+```{r}
+ad.test(Druguse2003$Value,Druguse2014$Value)
+```
+
+```{r}
+ks.test(Druguse2003$Value,Druguse2014$Value)
+
+```
+
+```{r}
+#We used the Wilcox Test because the differences between both samples was not normal, and there were observed samples of 0 which caused conflict with the data due to its way of calculating P-value.
+
+  pval=numeric(100)
+  i<-0
+  test<-0
+while(i<101) {
+  bootsample<-sample(Druguse2003$Value,25,replace = FALSE,prob = NULL)
+  bootsample2<-sample(Druguse2014$Value,20,replace = FALSE,prob = NULL)
+  pval[i]=wilcox.test(bootsample,bootsample2)$p.value
+  
+  if(pval>=0.05){
+    test=test+1
+  }
+   i=i+1
+  }
+  hist(pval)
+  mean(pval)
+  plot(density(pval))
+
+```
+
+```{r}
+if(test>=95){
+  print("There is not enough evidence to reject the Null Hypothesis")
+}else {
+print("There is enough evidence to reject the Null Hypothesis")
+}
+```
+
+```{r}
+library("faraway")
+pima
+```
+```{r}
+Utest<- function(n1,n2){
+  n3<-c(length(n1))
+  l1=dim(n1)[1]
+  l2=dim(n2)[1]
+  
+  n3<- rbind(n1,n2)
+  n4<-data.frame("Rank"=rank(n3[1]),n3)
+  r1<-select(filter(n4,test==1),Rank)
+  rs1<-sum(r1)
+  N=dim(n3)[1]
+  rs2 = abs(((N*(N+1)/2) - rs1))
+  
+  
+  U1<-rs1-(l1*(l1+1)/2)
+  U2<-rs2-(l2*(l2+1)/2) 
+  U<-min(U1,U2)
+
+  
+  if(U<25){
+    pValue = pwilcox(U,l1,l2)
+  print(pValue)
+    }
+  else{
+    z <- (U-(l1*l2/2))/(sqrt(l1*l2*(l1+l2+1)/12))
+    pValue = pnorm(z)
+  }
+
+  cat("pValue = ", pValue,"\n")
+    return(U)
+  }
+```
+
+```{r}
+filtereddata<-filter(pima, glucose>0,diastolic>0,triceps>0,insulin>0,bmi>0)
+n<- select(filtereddata, "diabetes","test")
+n1<-filter(n, test==1)
+n2<-filter(n, test==0)
+cat("Our Results \n")
+cat("U = ", Utest(n1,n2))
+
+cat("\n t-test Results")
+t.test(n1,n2)
+
+cat("\n Wilcox Results")
+wilcox.test(n2$diabetes,n1$diabetes, paired = FALSE)
+
+```
+
+

@@ -1,0 +1,185 @@
+---
+title: "2_Statistics"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Random variable generation
+
+```{r}
+normalVariable = rnorm(10000, mean= 10, sd = 2)
+hist(normalVariable)
+```
+
+```{r}
+median(normalVariable)
+mean(normalVariable)
+sd(normalVariable)
+```
+```{r}
+boxplot(normalVariable, outline = FALSE)
+abline(h = mean(normalVariable), col = "Red")
+```
+```{r}
+plot(density(normalVariable))
+plot(ecdf(normalVariable))
+```
+
+## Central limit and Law of strong numbers
+
+Bernoulli trial
+```{r}
+rbinom(1,1,c(0.5,0.5))
+```
+
+Binomial distribution with 100 experiments of 1 trial
+```{r}
+binomial = rbinom(100,1,c(0.5,0.5))
+hist(binomial)
+
+```
+
+Binomial distribution with 100 experiments of 100 trial
+```{r}
+binomial = rbinom(1000,1000,c(0.5,0.5))
+hist(binomial)
+plot(density(binomial))
+plot(ecdf(binomial))
+```
+
+```{r}
+5+9*10
+```
+
+
+
+
+
+
+
+
+
+
+
+## Statistical test
+
+Let's take 100 samples from the total population.
+
+```{r}
+pop1 = rnorm(10000, mean= 10, sd = 2)
+pop2 = rnorm(10000, mean= 15, sd = 2)
+plot(density(pop1), col = "blue", main = "Populations")
+lines(density(pop2), col = "red")
+```
+
+
+```{r}
+sample1 =  sample(pop1, 100)
+sample2 =  sample(pop2, 100)
+plot(density(sample1), col = "blue", main = "Populations")
+lines(density(sample2), col = "red")
+```
+
+```{r}
+t.test(sample1, sample2, alternative = "less")
+```
+
+
+```{r}
+statTest = t.test(sample1, sample2 )
+statTest$p.value
+```
+
+```{r}
+pv = wilcox.test(sample1, sample2, paired = F)
+pv$p.value
+```
+
+```{r}
+countTable = matrix (c(49,50,69,
+                       24,36,38,
+                       19,22,28
+                       ), ncol = 3, byrow = TRUE)
+colnames(countTable) = c("4","5","6")
+rownames(countTable) = c("Grades","Popular","Sports")
+print(countTable)
+```
+
+
+```{r}
+chisq.test(countTable)
+```
+
+```{r}
+countTable2 = matrix (c(57, 87, 24,
+                       50, 42, 6,
+                       42, 22, 5
+                       ), ncol = 3, byrow = TRUE)
+colnames(countTable2) = c("Rural","Suburban","Urban")
+rownames(countTable2) = c("Grades","Popular","Sports")
+print(countTable2)
+```
+
+
+```{r}
+chisq.test(countTable2)
+```
+
+
+```{r}
+install.packages("faraway")
+library(BSDA)
+```
+
+
+```{r}
+?z.test
+```
+
+
+```{r}
+```
+
+
+
+
+
+
+## Pima Data
+```{r message=FALSE}
+library(faraway)
+data(pima)
+head(pima)
+```
+```{r}
+summary(pima)
+```
+
+```{r}
+
+matrix(c(1,2,
+        3,4,
+        5,6), nrow = 2, byrow=F)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

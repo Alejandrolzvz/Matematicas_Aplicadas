@@ -1,0 +1,38 @@
+---
+title: 'Homework #3 pt 1'
+author: "Alejandro Saldaña y Benjamin Moreno"
+date: "12/3/2020"
+output: pdf_document
+---
+
+Code the linear regression cost function and the update equations
+```{r}
+MSE<-function(model1,d1){
+  N<-dim(d1[1])
+  for (variable in model1$coefficients) {
+    x<-as.data.frame(model1$coefficients)
+  }
+  b<-model1$coefficients[1]
+  df<-as.data.frame((d1[1]-predict(model1))^2)
+  res<-sum(df)/N[1]
+  print(d1-predict(model1))
+  print(df)
+  print(x)
+  cat("\n The MSE is = ")
+  return(res)
+}
+ 
+```
+
+```{r}
+data1=gala    
+model=lm(Species~.,data = data1)
+MSE(model, data1)
+res<-mean(model$residuals^2)
+res
+
+```
+
+
+
+

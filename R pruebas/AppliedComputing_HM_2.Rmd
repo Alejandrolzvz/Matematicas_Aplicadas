@@ -1,0 +1,164 @@
+---
+title: "HM_2_Statistical_Tests"
+author: "Jacobo Posada Hoyos A00829481 - Diego Fernando Cabrera Castellanos A00829475 - ITESM Campus Querétaro"
+date: "6/9/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+### 1. Statistic Test
+## Charging the data
+```{r}
+# Cleaning the console and Global Enviroment
+rm(list = ls())
+cat("\014") 
+
+
+# Calling the useful libraries
+library(dplyr)
+
+# Importing the database
+dataImp = read.csv("Dataset.csv")
+dataImp = select(dataImp,2,4,6,8,9)
+
+filteredData = filter(dataImp, Variable == 'Drug use disorders' 
+                      & Measure == 'Deaths per 100 000 population (standardised rates)')
+
+filtData2003 = filter(filteredData,Year == 2003)
+Value2003 = filtData2003$Value
+filtData2014 = filter(filteredData,Year == 2014)
+Value2014 = filtData2014$Value
+```
+
+## Getting the pdf of the variables
+```{r}
+hist(Value2003)
+hist(Value2014)
+plot(density(Value2003))
+plot(density(Value2014))
+```
+
+## Performing the Mann Whitney- U Test.
+```{r}
+#Both of vectors do not follow a normal probability distribution
+wilcox.test(Value2003,Value2014, paired = F, alternative = "two.sided",conf.int = 0.95)
+```
+
+## Executing the Bootstraping Method
+```{r}
+len2003 = length(Value2003)
+len2014 = length(Value2014)
+numIt = 100
+pValues1 = numeric(numIt)
+
+for(i in 1:numIt){
+  if(len2003>0 & len2014>0){
+    set.seed(len2003)
+    sample2003 = sample(Value2003,len2003)
+    set.seed(len2014)
+    sample2014 = sample(Value2014,len2014)
+    pValues1[i] = wilcox.test(sample2003,sample2014, paired = F, 
+                              alternative = "two.sided",conf.int = 0.95)$p.value
+  
+    len2003 = ceiling(0.75*len2003)
+    len2014 = ceiling(0.75*len2014)
+  }
+}
+
+hist(pValues1,main ="Bootstraping Method performing Mann-Whitney U Test", 
+     xlab = paste("Mean P-Values: ",toString(mean(pValues1))),col=rgb(0.1,0.1,0.1,0.5))
+box()
+```
+
+## Interpretation: 
+The statistical test was made for 2 events which contents information about the percentage of death per 100000 population, in several countries, owing to drug use disorders in 2 years specifically: 2003 & 2014. 
+The hyphotesis works around wether the difference of death is significantly different in both years. 
+After analyzing the probability density function of 2 events, teh distribution does not fulfill a normal one, therefore it was convenient using a statistical test wich was non-parametric (like this test). So, the chosen was Mann Whitney U Test whitch 95% as picked confidence interval. The p-value provides the samples range that produce a considerably difference and, for this case, it is just around of 15 % (The obtained p-value is 0,15 approximately).
+Thus, at a significance level of 0.05, the difference between the percentage of deaths (per each 100000 habitants) does not seem being significantly different in 2003 and 2014 by drug use disorders. 
+
+### 2. Mann-Whitney U Test - Function
+```{r}
+mannWhitneyU <- function(d1, d2){
+  
+  ## Saving the samples in data frames
+  data1 <- data.frame(param = d1, AB = "A" )
+  data2 <- data.frame(param = d2, AB = "B" )
+  ## Combining the data frames
+  x = rbind(data1,data2)
+  df <- data.frame("D" = x[,1], "AB" = x[,2] )
+  
+  # Sorting and Mixing the data in one variable
+  dfSort <- df[do.call(order, df), ]
+  
+  # Calculating the rank of each data
+  dfTotal = data.frame(dfSort, "Rank" = rank(dfSort[,1]))
+  
+  ## Now we do the statistical calculation 
+  # U1,2 = n1*n2 + (n1,2(n1,2+1))/2 - R1,2
+  # U = min(U1,U2) 
+  
+  
+  ## Calculating R1
+  RA = dfTotal[,2,] == "A"
+  R1 = dfTotal[,3,]
+  R1 = sum(as.numeric(as.character(R1[c(RA)])))
+  
+  ## Calculating R2
+  # So, we can know the value R2
+  ## Calculating n1 and n2
+  n1 <- dim(data1)[1]
+  n2 <- dim(data2)[1]
+  N = n1+n2
+  R2 = abs(((N*(N+1)/2) - R1))
+
+  #Now we can obtain U1 and U2
+  U1 <- (n1 * n2) + (n1*(n1 + 1) / 2) - R1
+  U2 <- (n1 * n2) + (n2*(n2 + 1) / 2) - R2
+  
+  # Now, calculating U
+  U  <- min(c(U1,U2))
+  
+  # Check for U values <25
+  if(U<25){
+    pValue = pwilcox(U,n1,n2)
+  }
+  else{
+    z <- (U-(n1*n2)/2)/(sqrt((n1*n2*(n1+n2+1))/12))
+    pValue = pnorm(z)
+  }
+  cat("               U Mann-Whitney Test\n\n ")
+  cat("U = " ,U,",","p-value = ", pValue,"\n")
+}
+
+### Now, we can perform the test for the pima data.
+# Libraries
+library(faraway)
+
+# Obtaining Pima dta
+data(pima)
+
+# Filtering 0-values
+filteredPima = filter(pima, glucose > 0,diastolic > 0, triceps > 0, insulin > 0, bmi > 0)
+
+# Selecting the parameter to make the test
+filteredPimaD1 = select(filter(filteredPima, test == 1), diabetes)
+filteredPimaD2 = select(filter(filteredPima, test == 0), diabetes)
+
+# Our U Mann-Whitney Function
+mannWhitneyU(filteredPimaD2,filteredPimaD1)
+
+# R Mann-Whitney Function 
+wilcox.test(filteredPimaD2$diabetes,filteredPimaD1$diabetes, paired = FALSE)
+
+# R t Test Function
+t.test(filteredPimaD2$diabetes, filteredPimaD1$diabetes)
+
+```
+
+
+
+
+

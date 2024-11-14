@@ -1,0 +1,120 @@
+---
+title: "HW2_2"
+author: "Fabian Gomez Gonzalez"
+date: "3/3/2020"
+output: html_document
+---
+
+Example data: From the faraway library the pima data
+
+```{r}
+library(faraway)
+data(pima)
+head(pima)
+summary(pima)
+
+```
+
+# Hypothesis Formulation
+
+Null Hypothesis: Pima Indian Women who don't show signs of diabetes (a test equal to 0) have the same diabetes pedigree density distribution compared to the ones that show signs of diabetes (a test equal to 1).
+
+Alternative Hypothesis: They are not the same.
+
+# Data Filtering
+
+We are filtering out the zero values for the columns that don't have a realistic value according to medical standards (glucose, blood pressure, bmi, skin thickness and insulin)
+
+
+```{r}
+filtered_pima <- subset(pima, pima$glucose > 0 & pima$diastolic > 0 & pima$triceps > 0 & pima$insulin > 0 & pima$bmi > 0)
+
+population_test_0 <- subset(filtered_pima, filtered_pima$test == 0)
+population_test_1 <- subset(filtered_pima, filtered_pima$test == 1)
+
+summary(population_test_0)
+summary(population_test_1)
+```
+
+```{r}
+plot(density(population_test_0$diabetes), col = "blue")
+lines(density(population_test_1$diabetes), col = "red")
+```
+
+# Mann-Whitney U Test Coding
+
+```{r}
+library(dplyr)
+
+mann_whitney_u_test <- function(sample_1, sample_2){
+  
+  #Bind sample 1 and sample 2
+  sample <- c(sample_1, sample_2)
+  
+  #Assign numeric ranks to  the whole sample
+  ranks  <- rank(sample, ties.method = "average")
+  
+  #Length of the whole sample
+  n  <- length(sample)
+  
+  #Length of sample 1
+  n_1 <- length(sample_1)
+  
+  #Length of sample 2
+  n_2 <- length(sample_2)
+
+  #Calculate R values
+  r_1 <- sum(ranks[1:n_1])
+  r_2 <- sum(ranks[(n_1+1):n])
+  
+  #Calculate U values
+  u_1 <- r_1 - n_1*(n_1+1)/2
+  u_2 <- r_2 - n_2*(n_2+1)/2
+  
+  #Select smallest u
+  u <- min(u_1, u_2)
+  
+  #Calculate mean and standard deviation
+  m_u <- (n_1*n_2)/2
+  std_dev_u <- sqrt( n_1*n_2*(n_1+n_2+1)/12 )
+  
+  #Calculate z
+  z <- (u-m_u) / std_dev_u
+  
+  #Obtain p-value
+  p_value <- 2 * pnorm(-abs(z))
+  
+  return(p_value)
+}
+
+
+p_value <- mann_whitney_u_test(population_test_0$diabetes, population_test_1$diabetes)
+print(p_value)
+
+```
+
+T test
+
+```{r}
+
+t.test(population_test_0$diabetes, population_test_1$diabetes, paired = FALSE, alternative = "two.sided", conf.level = 0.95)
+
+```
+
+
+
+```{r}
+
+wilcox.test(population_test_0$diabetes, population_test_1$diabetes, paired = FALSE, alternative = "two.sided", conf.level = 0.95)
+
+
+```
+
+# Conclusion
+
+In all 3 tests performed, the null hypothesis was successfully rejected with a p-value in the order of 10^-5, thus, it is consistent that the distributions of the pima indian women who showed signs of diabetes are different from the ones that don't. 
+
+
+
+
+

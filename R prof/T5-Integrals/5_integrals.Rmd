@@ -1,0 +1,121 @@
+---
+title: "5_Integrals"
+author: "Roberto Cardenas"
+date: "16/8/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Getting the first n-terms of the Taylor series
+
+```{r}
+
+library(pracma)
+taylor(f = sin, x0 =  0, n = 6)
+```
+
+Using the integral functions included in pracma
+
+```{r}
+function1 <- function(x) {
+  exp(-(x^2))
+}
+
+integral(function1, 0 , 0.5)
+```
+
+Using Monte Carlo approach with an evaluation range of 0 to 1
+
+```{r}
+fx = expression(exp(-(x^2)))
+
+x <- runif(100000)
+X <- eval(fx)
+mean(X)
+```
+
+Using Monte Carlo approach with an evaluation range different than 0 to 1
+
+First method: Using the transformation from x to y
+integral range [0, 0.5]
+
+```{r}
+gu <- expression(exp(-((0.5*u)^2))*0.5)
+
+u <- runif(10000)
+U <- eval(gu)
+mean(U)
+```
+
+Second method: Using x, but being careful of the bounds. The bounds (b-a) from the derivative value
+```{r}
+u <- runif(10000, 0, 0.5)
+gu <- expression( exp(-(u^2)) )
+U <- eval(gu)
+mean(U*0.5) # <- el 0.5 comes from [b-a]dy = dx
+```
+
+Let's compare it with the integral method from R
+```{r}
+integral(function1, 0, 1/2)
+```
+
+
+Multivariate integrals with pracma
+
+```{r}
+function2 <- function(x, y){
+  exp((x+y)^2)  
+}
+
+integral2(function2, 0, 1, 0, 1)
+
+```
+
+## Extra
+
+Compute $$\pi$$ by using known areas
+
+```{r}
+# Number of random points
+L <- 1e4
+r = 1
+
+# Generation of random points
+X <- runif(L,-1,1)
+Y <- runif(L,-1,1)
+
+# Formula to satisfy / constraint
+total <- (X^2 + Y^2) <= r^2
+
+# Let's see how many points satisfy the constraint
+# The 4 comes from the range(-1, 1) for both variables (square area)
+(4*sum(total))/length(total)
+```
+
+Let's plot it 
+```{r}
+color <- (as.numeric(total)+1)
+plot(X,Y, pch = 19, col = color)
+```
+
+The same idea, but only using one quarter of the circule
+
+```{r}
+L <- 1e6
+
+X <- runif(L,0,1)
+Y <- runif(L,0,1)
+
+total <- (X^2 + Y^2) <= 1
+(4*sum(total))/length(total)
+```
+
+```{r}
+color <- (as.numeric(total)+1)
+plot(X,Y, pch = 19, col = color)
+```
+

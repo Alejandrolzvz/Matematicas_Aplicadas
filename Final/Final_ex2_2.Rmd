@@ -1,0 +1,73 @@
+---
+title: "Final_ex2_2"
+author: "Equipo"
+date: "5/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+inter.lag <- function(x, y, xi)
+
+d = length(x)
+
+r = 0.0
+
+for (i in 1:d){
+  Lx = 1.0
+  lx = 1.0
+  for (j in 1:d){
+    if(i != j){
+      Lx <- Lx*(xi - x[j])
+      lx = lx*(x[i] - x [j])
+    }
+    j<-j+1
+    
+  }
+r = r  + (Lx/lx)*y[i]
+i<-i+1
+
+}
+print(r)
+```
+```{r}
+
+x <- readline(prompt="Input the values of x from the table, leaveng a space between them")
+y <- readline(prompt="Input the values of y from the table separated with a space")
+xi <- readline(prompt="Input the valueof x of which you wish to obtain the interpolation")
+
+inter.lag(x, y, xi)
+
+```
+#Ejemplo
+```{r}
+
+x = c(0, 5, 10, 20, 30, 40)
+y = c(1.787, 1.519, 1.307, 1.002, 0.796, 0.653)
+xi = 7.5
+
+d = length(x)
+
+r = 0.0
+
+for (i in 1:d){
+  Lx = 1.0
+  lx = 1.0
+  for (j in 1:d){
+    if(i != j){
+      Lx <- Lx*(xi - x[j])
+      lx = lx*(x[i] - x [j])
+    }
+    j<-j+1
+    
+  }
+r = r  + (Lx/lx)*y[i]
+i<-i+1
+
+}
+print(r)
+
+```

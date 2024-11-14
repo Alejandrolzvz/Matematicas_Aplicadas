@@ -1,0 +1,237 @@
+---
+title: "4_LinearRegression"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Linear Regression
+
+First load the library and the data
+
+```{r}
+library(faraway)
+data(gala)
+head(gala)
+```
+
+Here we do the linear model where Species is the dependent variable and all the others are independent
+
+```{r}
+model = lm(Species ~ . , data = gala)
+summary(model)
+```
+
+What do we see? First, it is necessary to see the Significance codes. And then, we must see the R-squared value. The Adjusted one is better to determine if the parameters are useful or not. \\
+If we see the significance codes, only one independent variable is important. Let's use that one
+
+```{r}
+model2 = lm(Species ~  Endemics , data = gala)
+summary(model2)
+```
+
+What do we see here? Only with that variable we can model pretty robust model.
+
+## Polynomial regression
+
+```{r}
+data(corrosion)
+head(corrosion)
+# esquisse::esquisser()
+```
+
+```{r}
+plot(loss ~ Fe, data = corrosion, ylim=c(60, 140))
+```
+
+
+Lets do a polynomial model, I will try with 6 different orders
+```{r}
+gp2 = lm( loss ~ Fe + I(Fe^2), corrosion )
+gp3 = lm( loss ~ Fe + I(Fe^2)+ I(Fe^3) , corrosion )
+gp4 = lm( loss ~ Fe + I(Fe^2)+ I(Fe^3)+ I(Fe^4) , corrosion )
+gp5 = lm( loss ~ Fe + I(Fe^2)+ I(Fe^3)+ I(Fe^4)+ I(Fe^5) , corrosion )
+gp6 = lm( loss ~ Fe + I(Fe^2)+ I(Fe^3)+ I(Fe^4)+ I(Fe^5)+ I(Fe^6) , corrosion )
+```
+
+How can we plot our answers and compare our models? Lets use ?predict \\
+
+The predict functions works with the next parameters: \\
+predict(  linear model estimated with R, \\
+          data.frame with the new values to predict   (X matrix) )
+
+```{r}
+# Let's generate our x-values to try the model
+grid = seq(0,2,len = 50)
+```
+
+seq is a function used to generate a sequence of values \\
+seq ( initial value, last value, step bewtween generated values)
+
+```{r}
+plot(loss ~ Fe, data = corrosion, ylim=c(60, 140))
+lines(grid, predict(gp4, data.frame(Fe=grid)) , col = "red")
+```
+
+## ANCOVA model
+
+Load the data 
+
+```{r}
+data(sexab)
+head(sexab)
+```
+
+Let's plot it
+
+```{r}
+plot(ptsd~csa, sexab)
+plot(ptsd~cpa, pch=as.character(csa), sexab)
+```
+
+
+
+If the lm functions detects a text , it automatically changes the response to a categorical value
+
+```{r}
+g = lm(ptsd ~ cpa, sexab)
+summary(g)
+```
+
+```{r}
+plot(ptsd~cpa, pch=as.character(csa), sexab)
+abline(6.5523, 1.0334, col = "red")
+```
+
+
+Separate regression lines for each group with the same slope, but with an offset value
+
+```{r}
+g = lm(ptsd ~ cpa+csa, sexab)
+summary(g)
+```
+
+```{r}
+plot(ptsd~cpa, pch=as.character(csa), sexab)
+abline(10.2480, 0.5506, col = "red")
+abline(10.2480 - 6.2728   , 0.5506 , col = "blue")
+```
+
+
+
+Separate regression lines for with group with different slopes and with an offset value
+
+```{r}
+g = lm(ptsd ~ cpa+csa+cpa:csa, sexab)
+summary(g)
+```
+
+```{r}
+plot(ptsd~cpa, pch=as.character(csa), sexab)
+abline(10.2480, 0.5506, col = "red")
+abline(10.2480 - 6.2728   , 0.3140 , col = "blue")
+```
+
+
+## ANOVA
+
+Load data
+```{r}
+library(faraway)
+data("coagulation")
+head(coagulation)
+```
+
+```{r}
+plot(coag ~ diet, coagulation, ylab="Coagulation time")
+```
+
+First model, Assumption mu = 0
+```{r}
+g2 = lm(coag ~ diet - 1, coagulation)
+summary(g2)
+```
+
+```{r}
+model.matrix(g2)
+```
+
+Second model, Assumption alpha 1 = 0
+If I set alpha 1 to zero, I cannot use the R-squared value
+
+
+```{r}
+g = lm(coag ~ diet, coagulation)
+summary(g)
+```
+
+```{r}
+model.matrix(g)
+
+```
+
+
+## Logistic Regression
+R function to use: glm with a binomial family
+```{r}
+lrm = glm(csa ~ cpa + ptsd, data=sexab, family=binomial)
+summary(lrm)
+```
+
+We don't have a R-squared value. What do we do?
+We compare the real values with the predicted values
+As we use a logistic model we have to specify the output type as response
+
+```{r}
+# Only independent variables
+toPredict = data.frame( cpa = sexab$cpa , ptsd  = sexab$ptsd )
+prediction = predict(lrm, toPredict, type = "response") 
+hist(prediction)
+```
+
+What happened? I need 0 or 1, and I have a lot more! This is because the answer is the probability value of each observation. Therefore, We assume that all values less than 0.5 correspond to the first category, whilst 0.5 or bigger correspond to the second condition
+
+How to do it? We round the value
+```{r}
+newPrediction = round(prediction)
+hist(newPrediction)
+```
+ 
+ If we don't have a R-squared value, how do we measure our model? With a confussion matrix
+
+```{r}
+# Confussion matrix to see the model performance
+tablaConfusion = table(newPrediction , sexab$csa)
+tablaConfusion
+```
+
+And finally we see how many observations were correctly labeled
+```{r}
+sum(diag(tablaConfusion)) /  sum(tablaConfusion)
+
+```
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

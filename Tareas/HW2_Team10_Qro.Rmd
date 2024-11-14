@@ -1,0 +1,204 @@
+---
+title: "Tarea 2"
+author: "Equipo 1o"
+Campus: "Qro"
+Nombres: "Fabián A01209914, Luis A01208334, Alejandro A01171715"
+date: "27/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(1111)
+```
+
+
+# Ex. 2
+```{r}
+rm(list = ls())
+library (vcd)
+library (nortest)
+dataset = read.csv("Dataset.csv")
+summary(dataset)
+
+```
+```{r}
+library(dplyr)
+
+filteredDataset = filter(dataset, 
+                         Variable == "Drug use disorders")
+summary(filteredDataset)
+
+```
+
+```{r}
+filtered2 = filter(filteredDataset, 
+       Measure == "Deaths per 100 000 population (standardised rates)")
+summary(filtered2)
+
+```
+```{r}
+filtered3 = filter(filtered2, 
+       Year == "2003")
+summary(filtered3)
+
+```
+```{r}
+filtered4 = filter(filtered2, 
+       Year == "2014")
+summary(filtered4)
+
+```
+```{r}
+plot(density(filtered3$Value), col = "blue")
+lines (density(filtered4$Value), col = "red")
+boxplot(filtered3$Value, filtered4$Value)
+
+```
+# Normality test
+
+```{r}
+ad.test(filtered3$Value)
+ad.test(filtered4$Value)
+ks.test(filtered3$Value,filtered4$Value)
+```
+
+
+```{r}
+#According to the graphics and the results of the normality test the data does not behave normally because of this The test to be performed will be Mann-Whitney also known as two-sample Wilcoxon
+
+pval=numeric(100)
+var<-1:100
+
+test<-0
+for (i in var) {
+  bs1<-sample(filtered3$Value,25,replace = TRUE,prob = NULL)
+  bs2<-sample(filtered4$Value,20,replace = TRUE,prob = NULL)
+  pval[i]=wilcox.test(bs1,bs2, paired = F, alternative = "two.sided",conf.int = 0.95)$p.value
+  
+  
+  if(pval>=0.05){
+    test=test+1}
+}
+  hist(pval)
+  mean(pval)
+  plot(density(pval))
+
+```
+# Conclusion
+
+According to the data there is not enough evidence to reject the null hypothesis, which means that with a 95 % of confidence that there is no significant difference between drugs use disorders as cause of dead from 2003 and 2014. 
+
+
+
+
+# Ex. 2
+
+Example data: From the faraway library the pima data
+
+```{r}
+library(faraway)
+data(pima)
+head(pima)
+summary(pima)
+
+```
+
+# Hypothesis Formulation
+
+Null Hypothesis: Pima Indian Women who don't show signs of diabetes (a test equal to 0) have the same diabetes pedigree density distribution compared to the ones that show signs of diabetes (a test equal to 1).
+
+Alternative Hypothesis: They are not the same.
+
+# Data Filtering
+
+We are filtering out the zero values for the columns that don't have a realistic value according to medical standards (glucose, blood pressure, bmi, skin thickness and insulin)
+
+
+```{r}
+filtered_pima <- subset(pima, pima$glucose > 0 & pima$diastolic > 0 & pima$triceps > 0 & pima$insulin > 0 & pima$bmi > 0)
+
+population_test_0 <- subset(filtered_pima, filtered_pima$test == 0)
+population_test_1 <- subset(filtered_pima, filtered_pima$test == 1)
+
+summary(population_test_0)
+summary(population_test_1)
+```
+
+```{r}
+plot(density(population_test_0$diabetes), col = "blue")
+lines(density(population_test_1$diabetes), col = "red")
+```
+
+# Mann-Whitney U Test Coding
+
+```{r}
+library(dplyr)
+
+mann_whitney_u_test <- function(sample_1, sample_2){
+  
+  #Bind sample 1 and sample 2
+  sample <- c(sample_1, sample_2)
+  
+  #Assign numeric ranks to  the whole sample
+  ranks  <- rank(sample, ties.method = "average")
+  
+  #Length of the whole sample
+  n  <- length(sample)
+  
+  #Length of sample 1
+  n_1 <- length(sample_1)
+  
+  #Length of sample 2
+  n_2 <- length(sample_2)
+
+  #Calculate R values
+  r_1 <- sum(ranks[1:n_1])
+  r_2 <- sum(ranks[(n_1+1):n])
+  
+  #Calculate U values
+  u_1 <- r_1 - n_1*(n_1+1)/2
+  u_2 <- r_2 - n_2*(n_2+1)/2
+  
+  #Select smallest u
+  u <- min(u_1, u_2)
+  
+  #Calculate mean and standard deviation
+  m_u <- (n_1*n_2)/2
+  std_dev_u <- sqrt( n_1*n_2*(n_1+n_2+1)/12 )
+  
+  #Calculate z
+  z <- (u-m_u) / std_dev_u
+  
+  #Obtain p-value
+  p_value <- 2 * pnorm(-abs(z))
+  
+  return(p_value)
+}
+
+
+p_value <- mann_whitney_u_test(population_test_0$diabetes, population_test_1$diabetes)
+print(p_value)
+
+```
+
+T test
+
+```{r}
+
+t.test(population_test_0$diabetes, population_test_1$diabetes, paired = FALSE, alternative = "two.sided", conf.level = 0.95)
+
+```
+
+
+
+```{r}
+
+wilcox.test(population_test_0$diabetes, population_test_1$diabetes, paired = FALSE, alternative = "two.sided", conf.level = 0.95)
+
+
+```
+
+# Conclusion
+
+In all 3 tests performed, the null hypothesis was successfully rejected with a p-value in the order of 10^-5, thus, it is consistent that the distributions of the pima indian women who showed signs of diabetes are different from the ones that don't. 

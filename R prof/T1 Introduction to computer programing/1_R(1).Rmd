@@ -1,0 +1,320 @@
+---
+title: "Introduction to R"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Using R as command prompt
+
+```{r}
+5+6
+5e10
+```
+
+## Using R to solve algebraic equations
+
+
+```{r}
+# Initial values
+x = 10
+y = 20
+
+# Equation
+magnitude = sqrt(x^2 + y^2)
+vx = x/magnitude
+vy = y/magnitude
+
+print(vx)
+print(vy)
+
+```
+
+## Using R and vector functions
+
+```{r}
+x = c(1,3,8)
+x[2]
+length(x)
+```
+
+## Exercise 1
+```{r}
+# Option 1
+log(((3+2)*5)+6)
+```
+```{r}
+# Option 2
+x = 3+2
+y = x*5
+z = y + 6
+log(z)
+```
+```{r}
+# Create a character vector with 5 elements, then print the fourth element
+vector = c(6,7,8,9,1)
+print( vector[4] )
+```
+```{r}
+vector2 = c(6,7,8,9)
+print( vector2[1] + vector2[3] )
+
+```
+
+## Using matrices
+
+```{r}
+x = c(1,3,8)
+y = c(3,4,5)
+
+cbind(x,y)
+```
+```{r}
+rbind(x,y)
+```
+
+```{r}
+xy = rbind(x,y)
+dim(xy)
+```
+
+```{r}
+row = 1
+column = 3
+xy[row, column]
+```
+
+
+```{r}
+# Negative index value
+print(y)
+y[-2]
+```
+
+## Retrive submatrices
+```{r}
+print(xy)
+```
+
+```{r}
+# Get all the rows from the column 3
+xy[ , 3]
+```
+```{r}
+# Get all the columns from the row 1
+xy[ 1 , ]
+```
+
+## Matrices operations
+```{r}
+xy
+```
+
+```{r}
+# Scalar
+xy * 10
+```
+```{r}
+# Elementwise
+x
+y
+x*y
+```
+
+```{r}
+xy %*% t(xy)
+```
+
+## Exercise 2
+```{r}
+# plot hist of a random normal variable
+randomValues = rnorm(1000, mean = 10, sd = 3)
+hist(randomValues)
+```
+
+## Exercises 3
+Use control flow to print all the values from 1 to 100 that are divisible by 3
+
+```{r}
+# Option 1: Using while and addition
+
+i = 3
+while ( i <= 100 ){
+  print(i)
+  i = i + 3
+}
+ 
+
+```
+
+```{r}
+# Option 2: Using while and multiplication
+
+i = 1
+# floor is a function used to truncate a decimal value
+upperBound = floor(100/3)
+while ( i <= upperBound ){
+  print(i*3)
+  i = i + 1
+}
+```
+
+```{r}
+# Option 3: Using for and multiplication
+
+# floor is a function used to truncate a decimal value
+upperBound = floor(100/3)
+for(i in 1:upperBound){
+  print(i*3)
+}
+```
+
+
+Use control flow to print all the numbers in the Fibonacci series till its 20th element
+
+```{r}
+past = 0
+present = 1
+
+for ( i in 1:20){
+  print(present)
+  future = present + past
+  past = present
+  present = future
+}
+
+```
+
+Use control flow to print if a numeric variable is a prime number 
+
+```{r}
+
+# Option 1: Without using functions
+
+prime = TRUE
+number = 11
+
+for( i in 2:(number-1) ){
+  # This if is used to check if the variable "bumber" is perfectly divisible by the variable "i"
+  if (number %% i == 0 ) {
+    # If the number can be divided by i, then it means that the number is not prime
+    prime = FALSE
+    # We use break to end the loop
+    break
+  }
+}
+
+answer = paste("Your number is a prime number?", prime)
+print(answer)
+
+
+```
+
+
+
+```{r}
+
+# Option 2: Using a function
+
+isPrime <- function(number){
+  for( i in 2:(number-1)){
+    if ( number %% i == 0){
+      return(FALSE)
+    }
+  }
+  return(TRUE)
+}
+
+isPrime(11)
+isPrime(12)
+
+```
+
+## Exercise 4
+```{r}
+data(iris)
+ncol(iris)
+```
+
+```{r}
+nrow(iris)
+```
+
+```{r}
+dim(iris)
+```
+
+```{r}
+head(iris)
+```
+
+```{r}
+colnames(iris)
+```
+
+```{r}
+summary(iris)
+```
+
+## Exploratory data analysis
+```{r}
+hist(iris$Sepal.Length)
+```
+
+```{r}
+plot(density(iris$Sepal.Length))
+```
+
+```{r}
+boxplot(iris)
+```
+
+```{r}
+boxplot(iris, outline = FALSE)
+```
+
+
+## Filtering data
+```{r}
+data("iris")
+library(dplyr)
+filteredDatabase = filter( iris, Sepal.Width > 4)
+```
+
+
+```{r}
+variableSlice = slice( iris, 10:15) 
+slice( iris, 10:15) 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+## Example how to write equations using latex notation
+
+$$
+x = \sum_{k=1}^K k \\
+x = 1\\
+y = 1
+$$
+
+
+
+
+
+
+
+
+
+
+

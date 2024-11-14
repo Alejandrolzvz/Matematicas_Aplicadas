@@ -1,0 +1,72 @@
+---
+title: "Database.csv Example"
+output: html_notebook
+---
+
+```{r}
+rm(list = ls())
+
+dataset = read.csv("Dataset.csv")
+summary(dataset)
+
+```
+
+```{r}
+head(dataset)
+```
+
+
+```{r}
+library(dplyr)
+
+filteredDataset = filter(dataset, 
+                         Year == 2010 | Year == 2012  )
+summary(filteredDataset)
+
+```
+
+```{r}
+
+
+filteredDataset$Year = factor( filteredDataset$Year  )
+summary(filteredDataset)
+```
+
+
+```{r}
+levels( dataset$Measure )
+```
+
+```{r}
+filtered2 = filter(filteredDataset, 
+       Measure == "Number of total deaths")
+boxplot( Value ~ Year, data = filtered2,
+         outline = FALSE)
+```
+
+
+```{r}
+filterQ2 = filter(dataset, Measure == "Number of total deaths")
+boxplot(Value ~ Year, data= filterQ2, outline = FALSE,
+        main = "All number of total deaths",
+        ylab = "Number of deaths",
+        xlab = "Year",
+        col = factor(dataset$Year)
+        )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
