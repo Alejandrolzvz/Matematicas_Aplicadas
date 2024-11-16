@@ -1,0 +1,115 @@
+
+```{r}
+
+library(Hmisc)
+library(rriskDistributions)
+data<- read.csv(file = "C:/Users/Alejandro/Downloads/numerical data.csv")
+names(data)
+plot(data, main="Phosphorus contamination")
+fit.cont(data$Phosphorus.contamination)
+quantile(data$Phosphorus.contamination, c(.025, .5, .975)) 
+get.norm.par(p= c(.025, .5, .975), q =c(0.072575, 0.0955, 0.114425),tol = 0.001)
+
+op<-data$Operator
+wo<-data$Workshift
+hf<-data$High.furnace
+gr<-data$Group
+pr<-data$Proportion.of.coke.mineral.vs.iron
+t1<-data$Temperature.of.arrival.to.zone.1
+t2<-data$Temperature.of.arrival.to.zone.2
+as<-data$Air.feeding.speed
+pc<-data$Phosphorus.contamination
+linmod<-aov(pc~op+wo+hf+gr+pr+t1+t2+as)
+anova(linmod)
+
+#goodness of fit and distribution for each parameter
+#Temp 2
+data2000<- data[data$Temperature.of.arrival.to.zone.2=='2000',]
+fit2000<-fit.cont(data2000$Phosphorus.contamination)
+data2500<- data[data$Temperature.of.arrival.to.zone.2=='2500',]
+fit2500<-fit.cont(data2500$Phosphorus.contamination)
+
+#Air speed
+data120<- data[data$Air.feeding.speed == '120',]
+fit120<-fit.cont(data120$Phosphorus.contamination)
+data150<- data[data$Air.feeding.speed == '150',]
+fit150<-fit.cont(data150$Phosphorus.contamination)
+
+#PurgeTime
+data2<- data[data$High.furnace.purge.time=='2',] 
+fit2<-fit.cont(data2$Phosphorus.contamination)
+data4<- data[data$High.furnace.purge.time== '4',]
+fit4<-fit.cont(data4$Phosphorus.contamination)
+
+
+
+```
+```{r}
+#Air speed
+qqnorm(data120$Phosphorus.contamination)
+qqline(data120$Phosphorus.contamination)
+
+boxplot(data120$Phosphorus.contamination)
+
+qqnorm(data150$Phosphorus.contamination)
+qqline(data150$Phosphorus.contamination)
+
+boxplot(data150$Phosphorus.contamination)
+
+data150<- data150[data150$Phosphorus.contamination > 0.071,]
+
+qqnorm(data150$Phosphorus.contamination)
+qqline(data150$Phosphorus.contamination)
+
+boxplot(data150$Phosphorus.contamination)
+
+```
+```{r}
+fit150<-fit.cont(data150$Phosphorus.contamination)
+```
+
+```{r}
+#Temp  2
+qqnorm(data2000$Phosphorus.contamination)
+qqline(data2000$Phosphorus.contamination)
+
+boxplot(data2000$Phosphorus.contamination)
+
+qqnorm(data2500$Phosphorus.contamination)
+qqline(data2500$Phosphorus.contamination)
+
+boxplot(data2500$Phosphorus.contamination)
+
+data2500<- data2500[data2500$Phosphorus.contamination > 0.078,]
+
+qqnorm(data2500$Phosphorus.contamination)
+qqline(data2500$Phosphorus.contamination)
+
+boxplot(data2500$Phosphorus.contamination)
+
+```
+```{r}
+fit2500<-fit.cont(data2500$Phosphorus.contamination)
+```
+
+```{r}
+# purge time
+qqnorm(data2$Phosphorus.contamination)
+qqline(data2$Phosphorus.contamination)
+
+boxplot(data2$Phosphorus.contamination)
+
+qqnorm(data4$Phosphorus.contamination)
+qqline(data4$Phosphorus.contamination)
+
+boxplot(data4$Phosphorus.contamination)
+
+```
+
+
+```{r}
+qqnorm(data$Phosphorus.contamination)
+qqline(data$Phosphorus.contamination)
+
+boxplot(data$Phosphorus.contamination)
+```

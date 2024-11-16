@@ -1,0 +1,50 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+
+head(airquality)
+
+select = c("Ozone", "Solar.R", "Wind", "Temp")
+
+df_aq <- airquality[select]
+
+df_aq <- na.omit(df_aq)
+
+```
+```{r}
+library(fitdistrplus)
+library(glmnet)
+library(modelr)
+library(base)
+library(dplyr)
+```
+
+
+```{r}
+library(rriskDistributions)
+fit.cont(df_aq$Ozone)
+```
+
+
+
+
+```{r}
+glm(formula = Ozone ~ Solar.R + Wind + Temp, family = "gaussian", data = df_aq, model = T)
+```
+
+
+
+```{r}
+model <- glm(formula = Ozone ~ Solar.R + Wind + Temp, family = "Gamma", data = df_aq, model = T)
+summary(model)
+
+predict(model, type = "response")
+```
+

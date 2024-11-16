@@ -1,0 +1,211 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+Q1: Use the gene data in the below link
+http://web.stanford.edu/~hastie/CASI_files/DATA/leukemia_big.csv
+	Perform 1000 nonparametric bootstrap replications of (ALL) ̅=0.752. You can use program bcanon from the CRAN library “bootstrap” 
+	Do the same for (AML) ̅=0.95.
+	Plot histograms of the results, and suggest an inference.
+Suppose that there were no differences between AML and ALL patients for any gene, so that 
+
+t=((ALL) ̅-(AML) ̅)/(sd) ̂ 
+
+exactly followed a student-t distribution with 70 degrees of freedom in all 7128 cases. About how big might you expect the largest observed t value to be? Hint: 1/7128 = 0.00014. 
+
+
+
+```{r}
+library(ggplot2)
+library(ggpubr)
+theme_set(theme_pubr())
+library(dplyr)
+library(tidyverse)
+all<-read.csv("C:/Users/Alejandro/Documents/1 ITESM/MCI/2do semestre/Nueva carpeta/Final/ALL.csv",  header = TRUE, stringsAsFactors = FALSE, na.strings = "NA")
+```
+```{r}
+all<-select(all, -c(Columna1))
+
+g136 <- select(all, X136)
+```
+
+
+```{r}
+
+library(bootstrap)
+g136<-as.numeric(unlist(g136))
+theta<- function(g136){mean(g136)}
+
+g136_boot <- bcanon(g136,1000, theta = theta)
+
+g136_boot$u
+
+hist(g136_boot$u)
+
+```
+
+
+```{r}
+aml<-read.csv("C:/Users/Alejandro/Documents/1 ITESM/MCI/2do semestre/Nueva carpeta/Final/AML.csv",  header = TRUE, stringsAsFactors = FALSE, na.strings = "NA")
+```
+
+```{r}
+aml<-select(aml, -c(Columna1))
+
+g136_aml <- select(aml, X136)
+```
+
+```{r}
+
+library(bootstrap)
+g136_aml<-as.numeric(unlist(g136_aml))
+theta<- function(g136_aml){mean(g136_aml)}
+
+g136_boot_aml <- bcanon(g136_aml,1000, theta = theta)
+
+g136_boot_aml$u
+
+hist(g136_boot_aml$u)
+```
+#3
+
+```{r}
+library(stats)
+library(bootstrap)
+
+
+# aml_boot_mat<-matrix(, nrow=47, ncol=7128)
+# aml_boot_vec<-vector()
+# 
+#   aml_boot <- bcanon(aml[,1],1000, theta = theta)
+#   aml_boot_mat[[,1]] <-aml_boot$u
+# aml_boot_vec[1]<-aml_boot$u
+# aml_boot_vec<-vector()
+# for (j in 1:7128){
+#   aml_boot <- bcanon(aml[,j],1000, theta = theta)
+#   aml_boot_vec[j]<-aml_boot$u
+#   
+# }
+# aml_t<-g136_boot_aml$u
+# all_t<-g136_boot$u
+
+t_vec<-vector()
+for (j in 1:7128){
+  t<-t.test(aml[,j], all[,j])
+  t_vec[j]<-t$statistic
+}
+
+
+plot(t_vec)
+t_vec_boot <- bcanon(t_vec,1000, theta = theta)
+qqnorm(t_vec_boot$u)
+```
+
+
+#6
+
+
+
+```{r}
+med<-read.csv("C:/Users/Alejandro/Documents/1 ITESM/MCI/2do semestre/Nueva carpeta/Final/med.csv",  header = TRUE, stringsAsFactors = FALSE, na.strings = "NA")
+med
+obs<-med
+
+```
+```{r}
+#Parametrize data to obtain vales between 0 and 1
+observed = med$y
+maximo = max(obs$y)
+med$y<-med$y/maximo
+
+str(med)
+sum(is.na(med$y))
+logita<-glm(y~.,data=med, family = "binomial")
+logita
+summary(logita)
+
+prediction = predict(object = logita, type = "response")
+
+response = prediction*maximo
+res <- trunc(response)
+
+res
+```
+
+
+
+
+#7
+(a) Fit the Poisson regression model to below data: 
+https://web.stanford.edu/~hastie/CASI_files/DATA/galaxy.txt
+(b) Plot the Poisson deviance residuals. 
+(c) Where does the fit seem poor?
+(d) How might you add to model to get a better fit? 
+
+
+
+```{r}
+ref<-read.csv("https://web.stanford.edu/~hastie/CASI_files/DATA/galaxy.txt",  header = FALSE, stringsAsFactors = FALSE, na.strings = "NA")
+gx<-read.csv("C:/Users/Alejandro/Documents/1 ITESM/MCI/2do semestre/Nueva carpeta/Final/gx.csv",  header = TRUE, stringsAsFactors = FALSE, na.strings = "NA")
+gx
+
+```
+```{r}
+#Parametrize data to obtain vales between 0 and 1
+observed = gx$gx
+# maximo = max(data_tool$CP)
+# data_tool$CP<-data_tool$CP/maximo
+
+str(gx)
+sum(is.na(gx$gx))
+logita<-glm(gx~.,data=gx, family = "poisson")
+logita
+summary(logita)
+
+
+#Model with only the 20 variables that affect the most
+
+
+c<-sort(logita$coefficients)
+c
+
+prediction = predict(object = logita, type = "response")
+
+prediction = trunc(prediction)
+
+pred_mat <- matrix(, nrow = 18, ncol = 15)
+rownames(pred_mat)<- c("21.38", "21.13", "20.88", "20.63", "20.38", "20.13", "19.88", "19.63", "19.38", "19.13", "18.88", "18.63", "18.38", "18.13", "17.88", "17.63", "17.38", "17.13")
+
+colnames(pred_mat)<- c("-1.56", "-1.44", "-1.31", "-1.19", "-1.06", "-0.94", "-0.81", "-0.69", "-0.56", "-0.44", "-0.31", "-0.19", "-0.06", "0.06", "0.19")
+
+c=1
+
+for (j in 1:15) {
+  for (i in 1:18){
+      pred_mat[i,j]<-prediction[c]
+      c <- c+1
+  }
+  
+}
+
+pred_mat
+```
+```{r}
+estimates <- fitted(logita)
+res.dev1 <- residuals(logita, type = "deviance")
+res.dev2 <- residuals(logita)
+poisson.dev <- function (y, mu) 
+    # unit deviance
+    2 * (y * log(ifelse(y == 0, 1, y/mu)) - (y - mu))
+res.dev3 <- sqrt(poisson.dev(prediction, estimates)) * 
+        ifelse(prediction > estimates, 1, -1)
+all.equal(res.dev1, res.dev2, res.dev3)
+
+qqnorm(residuals(logita))
+plot(residuals(logita))
+
+print(sd(resid(logita)))
+```
+

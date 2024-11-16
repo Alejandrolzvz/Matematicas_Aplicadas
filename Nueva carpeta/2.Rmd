@@ -1,0 +1,193 @@
+---
+title: "Phosphorus contamination"
+author: "Equipo"
+date: "14/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(data.table)
+rm(list=ls()) #clean the environment
+
+df<-fread('https://web.stanford.edu/~hastie/CASI_files/DATA/kidney.txt')
+
+#dev.off()
+
+
+ggplot(df,
+       aes(x=age,
+           y=tot))+
+  geom_point() + geom_line(aes(y=predict(lm(tot ~ age, data=df))))
+
+
+
+
+ggplot(df,
+       aes(x=age,
+           y=tot))+
+  geom_point() + geom_line(aes(y=predict(loess(tot ~ age, data=df, span=1/3))))
+
+
+
+ggplot(df,
+       aes(x=age,
+           y=tot))+
+  geom_point() + geom_line(aes(y=predict(lm(tot ~ age + I(tot^2) + I(tot^3), data=df))))
+
+
+random<-sapply(c(1:1000), function(x) sample(100:length(df$tot), 1))
+resample<-lapply(random, function(x) as.data.frame(df[sample(nrow(df), x), ]))
+lowess<-lapply(resample, function(x) predict(loess(tot ~ age, data=x, span=1/3)))
+for(i in c(1:length(resample))){
+  resample[[i]]$pred<-lowess[[i]]
+  resample[[i]]$bootstrap<-i
+  resample[[i]]$clasifier<-paste0('Try ', i)
+}
+resample<-do.call("rbind", resample)
+ggplot(subset(resample, bootstrap<20),
+       aes(x=age,
+           y=pred, 
+           color=clasifier)) + geom_line() +  theme(legend.position="none") 
+
+
+#Q1
+
+#The lowess curve has a flat spot between ages 25 and 35. 
+#Discuss how one might use bootstrap replications to suggest whether 
+#the flat spot is genuine or just a statistical artifact.
+
+
+#Q2
+#Fit a cubic regression, as a function of age, to the kidney data 
+# How do the results compare with lowess curve
+
+y=predict(lm(tot ~ age + I(tot^2) + I(tot^3), data=df
+
+```
+
+```{r}
+mechanics = c(7,44,49,59,34,46,0,32,49,52,44,36,42,5,22,18,41,48,31,42,46,63)
+vectors = c(51,69,41,70,42,40,40,45,57,64,61,59,60,30,58,51,63,38,42,69,49,63)
+
+ro = cor(mechanics, vectors)
+
+
+
+
+nsamples <- 1E5
+x <- runif(nsamples)
+f <- function(x, u) 1.5 * (x - (x^3) / 3) - u
+z <- c()
+
+# original version
+
+for (i in 1:nsamples) {
+  # find the root within (0,1) 
+  r <- uniroot(f, c(0,1), tol = 0.0001, u = x[i])$root
+  z <- c(z, r)
+}
+
+runif(1, -1,1)
+
+
+
+#######################################################
+
+library(bayesmeta)
+#http://ams.med.uni-goettingen.de:3838/bayesmeta/app/
+
+
+
+
+
+
+# The IQ of a bunch of zombies
+iq <- c(55, 44, 34, 18, 51, 40, 40, 49, 48, 46)
+
+# Defining the parameter grid
+# x ~ normal (mu, sigma) likelihood 
+# mu ~ normal (100, 100) perior 1 mu >0 
+# sigma ~ unif (0.1, 50) perior 2
+pars <- expand.grid(mu = seq(0, 150, length.out = 100), 
+                    sigma = seq(0.1, 50, length.out = 100))
+
+# Defining and calculating the prior density for each parameter combination
+pars$mu_prior <- dnorm(pars$mu, mean = 100, sd = 100)
+pars$sigma_prior <- dunif(pars$sigma, min = 0.1, max = 50)
+pars$prior <- pars$mu_prior * pars$sigma_prior
+
+#posterior = prior1 * prior * prior 3 *... * likelihood 
+# r+name of dist , p, q, d
+# Calculating the likelihood for each parameter combination
+for(i in 1:nrow(pars)) {
+  likelihoods <- dnorm(iq, pars$mu[i], pars$sigma[i])
+  pars$likelihood[i] <- prod(likelihoods)
+}
+pars$probability <- pars$likelihood * pars$prior
+pars$probability <- pars$probability / sum(pars$probability)
+
+library(lattice)
+levelplot(probability ~ mu*sigma, data=pars)
+```
+
+```{r echo=FALSE}
+library(readxl)
+Phosphorus_contamination_DB_Prior <- read_excel("C:/Users/Alejandro/Desktop/Phosphorus contamination DB.xlsx", 
+    range = "A1:K34")
+attach(Phosphorus_contamination_DB_Prior)
+
+require(rriskDistributions)
+res1 <- fit.cont(Phosphorus_contamination_Prior)
+```
+
+
+```{r echo=FALSE}
+library(readxl)
+Phosphorus_contamination_DB <- read_excel("C:/Users/Alejandro/Desktop/Phosphorus contamination DB.xlsx", 
+    range = "M1:W32")
+attach(Phosphorus_contamination_DB)
+
+require(rriskDistributions)
+res1 <- fit.cont(Phosphorus_contamination)
+```
+
+
+```{r}
+# The IQ of a bunch of zombies
+iq <- c(55, 44, 34, 18, 51, 40, 40, 49, 48, 46)
+
+# Defining the parameter grid
+# x ~ normal (mu, sigma) likelihood 
+# mu ~ normal (100, 100) perior 1 mu >0 
+# sigma ~ unif (0.1, 50) perior 2
+pars <- expand.grid(mu = seq(0, 150, length.out = 100), 
+                    sigma = seq(0.1, 50, length.out = 100))
+
+# Defining and calculating the prior density for each parameter combination
+pars$mu_prior <- dnorm(pars$mu, mean = 0.09338710, sd = 0.01223869)
+pars$sigma_prior <- dunif(pars$sigma, min = 0.1, max = 50)
+pars$prior <- pars$mu_prior * pars$sigma_prior
+
+#posterior = prior1 * prior * prior 3 *... * likelihood 
+# r+name of dist , p, q, d
+# Calculating the likelihood for each parameter combination
+for(i in 1:nrow(pars)) {
+  likelihoods <- dnorm(iq, pars$mu[i], pars$sigma[i])
+  pars$likelihood[i] <- prod(likelihoods)
+}
+pars$probability <- pars$likelihood * pars$prior
+pars$probability <- pars$probability / sum(pars$probability)
+
+library(lattice)
+levelplot(probability ~ mu*sigma, data=pars)
+```
+
+
+```{r}
+```
+

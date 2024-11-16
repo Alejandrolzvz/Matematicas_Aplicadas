@@ -1,0 +1,61 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(fitdistrplus)
+n=50
+Data=rnorm(n,0,1)
+fitdist(Data,dnorm)
+MLE=mean(Data
+         )
+
+
+```
+
+```{r}
+#JS = x_bar + B (x - x_bar)
+#B = 1 - (n - 3) sig / sum (x - x_bar)^2
+
+B = 1 - ((n - 3) *var(Data)) / sum (Data -MLE)^2
+JS = MLE + B * sum (Data - MLE)
+
+B
+JS
+```
+
+```{r}
+library(ISLR)
+library(glmnet)
+library(dplyr)
+library(tidyr)
+```
+```{r}
+Hitters = na.omit(Hitters)
+
+x = model.matrix(Salary~., Hitters)[,-1] # trim off the first column
+                                         # leaving only the predictors
+y = Hitters %>%
+  select(Salary) %>%
+  unlist() %>%
+  as.numeric()
+```
+```{r}
+grid = 10^seq(10, -2, length = 100)
+ridge_mod = glmnet(x, y, alpha = 0, lambda = grid)
+```
+
+```{r}
+dim(coef(ridge_mod))
+
+```
+
+```{r}
+plot(ridge_mod)    # Draw plot of coefficients
+```
+

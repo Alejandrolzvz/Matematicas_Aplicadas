@@ -1,0 +1,247 @@
+
+
+
+```{r echo=FALSE}
+library(readxl)
+
+contamination <- read.csv("~/1 ITESM/MCI/2do semestre/Nueva carpeta/contamination.csv")
+
+cont_vs_air<- data.frame(contamination$Air.feeding.speed,contamination$Phosphorus.contamination)
+
+pc<-cont_vs_air$contamination.Phosphorus.contamination
+   
+attach(contamination)
+
+require(rriskDistributions)
+res1 <- fit.cont(pc)
+```
+```{r}
+N= length(pc)
+```
+
+
+```{r}
+theta = seq(from=1/(N+1), to=N/(N+1), length=N)
+```
+```{r}
+### prior distribution
+# triangular as in Kruschke text example
+pTheta = pmin(theta, 1-theta)
+
+# uniform
+# pTheta = dunif(theta)
+
+# beta prior with mean = .5
+# pTheta = dbeta(theta, 10, 10)
+
+# Normalize so that values sum to 1
+pTheta = pTheta/sum(pTheta) 
+```
+
+
+```{r}
+pDataGivenTheta = choose(N, nGoal) * theta^nGoal * (1-theta)^nMiss
+```
+```{r}
+pData = sum(pDataGivenTheta*pTheta)  # marginal probability of the data
+
+pThetaGivenData = pDataGivenTheta*pTheta / pData  # Bayes theorem
+```
+
+```{r}
+posteriorMean = sum(pThetaGivenData*theta)
+posteriorMean
+```
+
+
+
+```{r}
+# The IQ of a bunch of zombies
+iq <- c(55, 44, 34, 18, 51, 40, 40, 49, 48, 46)
+
+# Defining the parameter grid
+# x ~ normal (mu, sigma) likelihood 
+# mu ~ normal (100, 100) perior 1 mu >0 
+# sigma ~ unif (0.1, 50) perior 2
+pars <- expand.grid(mu = seq(0, 150, length.out = 100), 
+                    sigma = seq(0.1, 50, length.out = 100))
+
+# Defining and calculating the prior density for each parameter combination
+pars$mu_prior <- dnorm(pars$mu, mean = 100, sd = 100)
+pars$sigma_prior <- dunif(pars$sigma, min = 0.1, max = 50)
+pars$prior <- pars$mu_prior * pars$sigma_prior
+
+#posterior = prior1 * prior * prior 3 *... * likelihood 
+# r+name of dist , p, q, d
+# Calculating the likelihood for each parameter combination
+for(i in 1:nrow(pars)) {
+  likelihoods <- dnorm(iq, pars$mu[i], pars$sigma[i])
+  pars$likelihood[i] <- prod(likelihoods)
+}
+pars$probability <- pars$likelihood * pars$prior
+pars$probability <- pars$probability / sum(pars$probability)
+
+library(lattice)
+levelplot(probability ~ mu*sigma, data=pars)
+  11
+```
+```{r}
+epdfPlot(probability)
+
+
+```
+
+
+```{r}
+data (iris)
+summary(iris)
+plot(iris$Petal.Length, iris$Petal.Width, pch=21, bg=c("red","green3","blue")[unclass(iris$Species)], main="Edgar Anderson's Iris Data", xlab="Petal length", ylab="Petal width")
+plot(iris$Sepal.Width, iris$Sepal.Length, pch=21, bg=c("red","green3","blue")[unclass(iris$Species)], main="Edgar Anderson's Iris Data", xlab="Sepal Width", ylab="Sepal Length")
+
+library(fitdistrplus)
+fit.cont(iris$Petal.Width)
+
+```
+
+
+```{r}
+summary(iris)
+quantile(iris$Sepal.Length, c(.025, .5, .975)) 
+get.gompertz.par(p= c(.25, .5, .75), q =c(5.1, 5.8, 6.4),tol = 0.2)
+
+
+library(EnvStats)
+#jeffery prior
+
+b = 1
+pdfPlot(distribution = "gamma", param.list = list(shape = length(iris$Sepal.Length), scale = sum(exp(b*iris$Sepal.Length))-1), pdf.col = "red") 
+pdfPlot(distribution = "gamma", param.list = list(shape = length(iris$Sepal.Length), scale = sum(exp(b*iris$Sepal.Length))-1), pdf.col = "red") 
+
+
+scale = 1
+f <- function(x, u) sqrt(length(iris$Sepal.Length))*log(x) - u
+z <- c()
+
+
+
+nsamples <- 1E3
+x <- runif(nsamples)
+for (i in 1:nsamples) {
+  # find the root within (0,1) 
+  r <- uniroot(f, c(0,10), tol = 0.001, u = x[i])$root
+  z <- c(z, r)
+}
+epdfPlot(z, main = "empirical prior Jeffery")
+
+
+#gama prior
+shape = NA
+for (i in 1:1000){
+  Data = sample(iris$Sepal.Length, 150,replace = TRUE)
+  Q = quantile(Data, c(.25, .5, .75))
+  par = get.gompertz.par(p= c(.25, .5, .75), q =c(Q[[1]], Q[[2]], Q[[3]]),tol = 0.098)
+  shape[i] = par[1]
+}
+fitdist (shape, distr = "gamma")
+
+```
+
+```{r}
+# The IQ of a bunch of zombies
+iq <- c(55, 44, 34, 18, 51, 40, 40, 49, 48, 46)
+
+# Defining the parameter grid
+# x ~ normal (mu, sigma) likelihood 
+# mu ~ normal (100, 100) perior 1 mu >0 
+# sigma ~ unif (0.1, 50) perior 2
+pars <- expand.grid(mu = seq(0, 150, length.out = 100), 
+                    sigma = seq(0.1, 50, length.out = 100))
+
+# Defining and calculating the prior density for each parameter combination
+pars$mu_prior <- dnorm(pars$mu, mean = 100, sd = 100)
+pars$sigma_prior <- dunif(pars$sigma, min = 0.1, max = 50)
+pars$prior <- pars$mu_prior * pars$sigma_prior
+
+#posterior = prior1 * prior * prior 3 *... * likelihood 
+# r+name of dist , p, q, d
+# Calculating the likelihood for each parameter combination
+for(i in 1:nrow(pars)) {
+  likelihoods <- dnorm(iq, pars$mu[i], pars$sigma[i])
+  pars$likelihood[i] <- prod(likelihoods)
+}
+pars$probability <- pars$likelihood * pars$prior
+pars$probability <- pars$probability / sum(pars$probability)
+
+library(lattice)
+levelplot(probability ~ mu*sigma, data=pars)
+  11 
+```
+
+
+
+```{r}
+
+Data = pc
+optimize(function(theta)-sum(dcauchy(Data,location = theta, log = TRUE)), c(-100,100))
+
+```
+
+```{r}
+bias = NA
+n =20
+Data = pc
+mlecauchy=optimize(function(theta)-sum(dcauchy(Data,location = theta, log = TRUE)), c(-100,100))
+for (i in 1:1000){
+  Data = pc
+  #tetahat = mlecauchy(Data)
+  tetahat = optimize(function(theta)-sum(dcauchy(Data,location = theta, log = TRUE)), c(-100,100))
+  bias[i]=(0-tetahat$minimum)^2
+}
+
+plot(sort(bias))
+abline(h = 0.1)
+```
+
+
+```{r}
+mlecauchy=function(x,toler=.001){      #x is a vector here
+  startvalue=median(x)
+  n=length(x);
+  thetahatcurr=startvalue;
+  # Compute first deriviative of log likelihood
+  firstderivll=2*sum((x-thetahatcurr)/(1+(x-thetahatcurr)^2))
+  # Continue Newtonâs method until the first derivative
+  # of the likelihood is within toler of 0.001
+  while(abs(firstderivll)>toler){
+    # Compute second derivative of log likelihood
+    secondderivll=2*sum(((x-thetahatcurr)^2-1)/(1+(x-thetahatcurr)^2)^2);
+    # Newtonâs method update of estimate of theta
+    thetahatnew=thetahatcurr-firstderivll/secondderivll;
+    thetahatcurr=thetahatnew;
+    # Compute first derivative of log likelihood
+    firstderivll=2*sum((x-thetahatcurr)/(1+(x-thetahatcurr)^2))
+  }
+  list(thetahat=thetahatcurr);
+}
+
+
+```
+```{r}
+tetahat=optimize(function(theta) -sum(dcauchy(Data, location=theta, log=TRUE)),  c(-100,100)) 
+
+
+
+```
+```{r}
+bias = NA
+n = 20
+for (i in 1:1000){
+  Data = rcauchy(n, location = 0)
+  tetahat = mlecauchy(Data)
+  bias[i] = (0-tetahat$thetahat)^2
+}
+
+plot(sort(bias))
+abline(h = 0.1)
+```
+

@@ -1,0 +1,100 @@
+---
+title: "distribution"
+author: "Benjamín Moreno"
+date: "14/9/2020"
+output: html_document
+---
+```{r}
+library(fitdistrplus)
+library(rriskDistributions)
+library(dplyr)
+library(corrplot)
+library(boot)
+library(readxl)
+
+```
+
+```{r}
+data<- read.csv(file = "contamination.csv")
+summary(data)
+```
+```{r}
+operator<-data$Operator
+t<-data$High.furnace
+portion<-data$Proportion.of.coke.mineral.vs.iron
+temp1<-data$Temperature.of.arrival.to.zone.1
+temp2<-data$Temperature.of.arrival.to.zone.2
+air<-data$Air.feeding.speed
+vel<-data$Air.feeding.speed
+cont<-data$Phosphorus.contamination
+fit1<- lm(cont~operator+t+portion+temp1+temp2+air+vel)
+anova(fit1)
+```
+
+```{r}
+res1<-fit.cont(data$Phosphorus.contamination)
+```
+```{r}
+
+
+Phosphorus_contamination_Prior <- read_excel("C:/Users/Alejandro/Desktop/Phosphorus contamination DB.xlsx", range = "A1:K34")
+attach(Phosphorus_contamination_Prior)
+Phosphorus_contamination_Post <- read_excel("C:/Users/Alejandro/Desktop/Phosphorus contamination DB.xlsx", range = "M1:W32")
+attach(Phosphorus_contamination_Post)
+
+```
+
+
+```{r}
+normal_dist <- fitdist(data$Phosphorus.contamination, "norm")
+plot(normal_dist)
+```
+```{r}
+descdist(data$Phosphorus.contamination, boot = 100, discrete = F)
+fitdist(data$Phosphorus.contamination, distr='beta')
+```
+```{r}
+# The IQ of a bunch of zombies
+iq <- Phosphorus_contamination_Prior$Phosphorus_contamination_Prior
+
+# Defining the parameter grid
+# x ~ normal (mu, sigma) likelihood 
+# mu ~ normal (100, 100) perior 1 mu >0 
+# sigma ~ unif (0.1, 50) perior 2
+pars <- expand.grid(mu = seq(0.09, 0.11, length.out = 100), 
+                    sigma = seq(0.0001,0.02 , length.out = 100))
+
+# Defining and calculating the prior density for each parameter combination
+pars$mu_prior <- dnorm(pars$mu, mean = 0.09464, sd = 0.01110795)
+pars$sigma_prior <- dunif(pars$sigma, min = 0.0001, max = 0.02)
+pars$prior <- pars$mu_prior * pars$sigma_prior
+
+#posterior = prior1 * prior * prior 3 *... * likelihood 
+# r+name of dist , p, q, d
+# Calculating the likelihood for each parameter combination
+for(i in 1:nrow(pars)) {
+  likelihoods <- dnorm(iq, pars$mu[i], pars$sigma[i])
+  pars$likelihood[i] <- prod(likelihoods)
+}
+pars$probability <- pars$likelihood * pars$prior
+pars$probability <- pars$probability / sum(pars$probability)
+
+library(lattice)
+levelplot(probability ~ mu*sigma, data=pars)
+grid <- expand.grid(seq(0.06, 0.15, length.out = 100))
+prueba<- dnorm(x=grid$Var1,mean = 0.097,sd = 0.01)
+plot(prueba)
+mean<-0.097
+sd<- 0.01
+
+prior1<-dnorm(x=grid$Var1, mean=0.0958, sd=0.00978)
+plot(prior1)
+likelihood<-dnorm(grid$Var1, pars$mu[i], pars$sigma[i])
+plot(likelihood)
+posterior<-prior1*likelihood
+plot(posterior)
+dot
+```
+
+
+

@@ -1,0 +1,78 @@
+
+```{r}
+
+
+q <- seq(from=0, to=20, by=0.1)
+
+
+y <- 500 + 0.4 * (q-10)^3
+
+
+noise <- rnorm(length(q), mean=10, sd=80)
+noisy.y <- y + noise
+
+
+plot(q,noisy.y,col='deepskyblue4',xlab='q',main='Observed data')
+lines(q,y,col='firebrick1',lwd=3)
+```
+
+
+```{r}
+model <- lm(noisy.y ~ poly(q,3))
+summary(model)
+
+```
+
+```{r}
+confint(model, level=0.95)
+
+```
+
+```{r}
+plot(fitted(model),residuals(model))
+```
+
+```{r}
+predicted.intervals <- predict(model,data.frame(x=q),interval='confidence', 
+                               level=0.99)
+
+plot(q,noisy.y,col='deepskyblue4',xlab='q',main='Observed data')
+lines(q,y,col='firebrick1',lwd=3)
+lines(q,predicted.intervals[,1],col='green',lwd=3)
+lines(q,predicted.intervals[,2],col='black',lwd=1)
+lines(q,predicted.intervals[,3],col='black',lwd=1)
+
+legend("bottomright",c("Observ.","Signal","Predicted"), 
+       col=c("deepskyblue4","red","green"), lwd=3)
+
+```
+
+
+```{r}
+# library
+library(rgl)
+
+# This is to output a rgl plot in a rmarkdown document. Note that you must add webgl=TRUE, results='hide' in the chunck header
+#library(knitr)
+#knit_hooks$set(webgl = hook_webgl)
+
+# Data: the iris data is provided by R
+data <- iris
+
+# Add a new column with color
+mycolors <- c('royalblue1', 'darkcyan', 'oldlace')
+data$color <- mycolors[ as.numeric(data$Species) ]
+
+# Plot
+par(mar=c(0,0,0,0))
+plot3d( 
+  x=data$`Sepal.Length`, y=data$`Sepal.Width`, z=data$`Petal.Length`, 
+  col = data$color, 
+  type = 's', 
+  radius = .1,
+  xlab="Sepal Length", ylab="Sepal Width", zlab="Petal Length")
+
+writeWebGL( filename="HtmlWidget/3dscatter.html" ,  width=600, height=600)
+```
+
+
